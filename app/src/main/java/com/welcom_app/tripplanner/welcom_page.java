@@ -57,12 +57,15 @@ public class welcom_page extends AppCompatActivity {
             boolean onboardingShown = prefs.getBoolean("onboardingShown", false);
 
             Intent intent;
-            if (isLoggedIn) {
-                intent = new Intent(welcom_page.this, Main.class);
-            } else if (!onboardingShown) {
+            if (!isLoggedIn && !onboardingShown) {
+                // User not logged in & first time -> show onboarding
                 intent = new Intent(welcom_page.this, Onboarding.class);
                 prefs.edit().putBoolean("onboardingShown", true).apply();
+            } else if (isLoggedIn) {
+                // Already logged in -> go to Main
+                intent = new Intent(welcom_page.this, Main.class);
             } else {
+                // Not logged in & onboarding already shown -> go to Login
                 intent = new Intent(welcom_page.this, Login.class);
             }
 
@@ -70,6 +73,7 @@ public class welcom_page extends AppCompatActivity {
             finish();
         }, 2000);
     }
+
 
     @Override
     protected void onStart() {
