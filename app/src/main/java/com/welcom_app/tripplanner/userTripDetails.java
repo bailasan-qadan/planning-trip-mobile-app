@@ -1,6 +1,9 @@
 package com.welcom_app.tripplanner;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,7 +26,7 @@ public class userTripDetails extends AppCompatActivity {
     private TextView cityText, countryText, userDates, userNotes, restaurantsText, hotelsText, safetyText, famousText;
 
     private String userTripJson;
-    private Trip originalTrip;
+    private Trip originalTrip; // Only for static trip info (restaurants, hotels, etc.)
     private userTrip userTrip;
 
     private static final String KEY_USER_JSON = "userTripJson";
@@ -64,83 +67,64 @@ public class userTripDetails extends AppCompatActivity {
         userTrip = new Gson().fromJson(userTripJson, userTrip.class);
         loadOriginalTrip();
         updateUI();
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
+        Button btnEdit = findViewById(R.id.ETBtn);
+        btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(userTripDetails.this, EditTrip.class);
+            intent.putExtra("userTripJson", userTripJson);
+            startActivityForResult(intent, 101);
+        });
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(KEY_USER_JSON, userTripJson);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        userTripJson = savedInstanceState.getString(KEY_USER_JSON);
-        if (userTripJson != null) {
-            userTrip = new Gson().fromJson(userTripJson, userTrip.class);
-            loadOriginalTrip();
-            updateUI();
-        }
+        Button deleteBtn = findViewById(R.id.deleteBtn);
+        deleteBtn.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(userTripDetails.this)
+                    .setTitle("Delete Trip")
+                    .setMessage("Are you sure you want to delete this trip?")
+                    .setPositiveButton("Yes", (dialog, which) -> deleteTrip())
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 
     private void loadOriginalTrip() {
         List<Trip> allTrips = loadTripsFromJson();
         originalTrip = null;
+
         for (Trip t : allTrips) {
             if (t.getCityName().equalsIgnoreCase(userTrip.getCityName())) {
-                originalTrip = t;
-                int id = getResources().getIdentifier(t.getImage(), "drawable", getPackageName());
-                t.setImageResId(id);
+                // Copy only static info; do NOT copy start/end dates
+                originalTrip = new Trip();
+                originalTrip.setCityName(t.getCityName());
+                originalTrip.setCountry(t.getCountry());
+                originalTrip.setImageResId(getResources().getIdentifier(t.getImage(), "drawable", getPackageName()));
+                originalTrip.setRestaurants(t.getRestaurants());
+                originalTrip.setHotels(t.getHotels());
+                originalTrip.setFamous(t.getFamous());
+                originalTrip.setSafety(t.getSafety());
                 break;
             }
         }
+
         if (originalTrip == null) {
-            finish();
+            finish(); // If no static trip info found, close activity
         }
     }
 
     private void updateUI() {
         if (originalTrip == null || userTrip == null) return;
 
+        // Static info
         imageView.setImageResource(originalTrip.getImageResId());
         cityText.setText(originalTrip.getCityName());
         countryText.setText(originalTrip.getCountry());
-        userDates.setText(userTrip.getStartDate() + " → " + userTrip.getEndDate());
-        userNotes.setText(userTrip.getNotes());
         restaurantsText.setText("Restaurants:\n" + android.text.TextUtils.join(", ", originalTrip.getRestaurants()));
         hotelsText.setText("Hotels:\n" + android.text.TextUtils.join(", ", originalTrip.getHotels()));
         famousText.setText("Famous Places:\n" + android.text.TextUtils.join(", ", originalTrip.getFamous()));
         safetyText.setText("Safety:\n" + originalTrip.getSafety());
+
+        // User-specific info
+        userDates.setText(userTrip.getStartDate() + " → " + userTrip.getEndDate());
+        userNotes.setText(userTrip.getNotes());
     }
 
     private String loadJson(String filename) {
@@ -162,6 +146,44 @@ public class userTripDetails extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             return java.util.Collections.emptyList();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == RESULT_OK && data != null) {
+            String editedTripJson = data.getStringExtra("editedTripJson");
+            if (editedTripJson != null) {
+                userTripJson = editedTripJson;
+                userTrip = new Gson().fromJson(userTripJson, userTrip.class);
+                updateUI();
+            }
+        }
+    }
+
+    private void deleteTrip() {
+        Intent result = new Intent();
+        result.putExtra("deletedTripCity", userTrip.getCityName());
+        setResult(RESULT_FIRST_USER, result);
+        finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_USER_JSON, userTripJson);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        userTripJson = savedInstanceState.getString(KEY_USER_JSON);
+        if (userTripJson != null) {
+            userTrip = new Gson().fromJson(userTripJson, userTrip.class);
+            loadOriginalTrip();
+            updateUI();
         }
     }
 }

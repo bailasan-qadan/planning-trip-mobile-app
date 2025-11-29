@@ -2,6 +2,7 @@ package com.welcom_app.tripplanner;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.animation.AlphaAnimation;
@@ -51,7 +52,24 @@ public class welcom_page extends AppCompatActivity {
         animationStarted = true;
 
         new Handler().postDelayed(() -> {
-            startActivity(new Intent(welcom_page.this, Onboarding.class));
+            SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
+            boolean onboardingShown = prefs.getBoolean("onboardingShown", false);
+
+            Intent intent;
+            if (isLoggedIn) {
+                // Already logged in → go to Main
+                intent = new Intent(welcom_page.this, Main.class);
+            } else if (!onboardingShown) {
+                // First time → show Onboarding
+                intent = new Intent(welcom_page.this, Onboarding.class);
+                prefs.edit().putBoolean("onboardingShown", true).apply();
+            } else {
+                // Not logged in but onboarding already seen → go to Login
+                intent = new Intent(welcom_page.this, Login.class);
+            }
+
+            startActivity(intent);
             finish();
         }, 2000);
     }

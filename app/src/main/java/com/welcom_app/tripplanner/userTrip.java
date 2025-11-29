@@ -15,6 +15,22 @@ public class userTrip {
         this.notes = notes;
     }
 
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
     public String getCityName() { return cityName; }
     public String getStartDate() { return startDate; }
     public String getEndDate() { return endDate; }

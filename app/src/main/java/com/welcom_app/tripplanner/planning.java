@@ -58,41 +58,7 @@ public class planning extends AppCompatActivity {
         etEndDate.setOnClickListener(v -> showDatePicker(etEndDate));
         btnAddEvent.setOnClickListener(v -> addEventView(null));
         btnStartTrip.setOnClickListener(v -> saveTrip());
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getSharedPreferences(PREF, MODE_PRIVATE)
-                .edit()
-                .putString("last_screen", "planning")
-                .apply();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        getSharedPreferences(PREF, MODE_PRIVATE)
-                .edit()
-                .putString("draft_destination", etDestination.getText().toString())
-                .putString("draft_start_date", etStartDate.getText().toString())
-                .putString("draft_end_date", etEndDate.getText().toString())
-                .apply();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     private void showDatePicker(EditText target) {
@@ -147,48 +113,55 @@ public class planning extends AppCompatActivity {
             return;
         }
 
-        Trip newTrip = new Trip();
-        newTrip.setCityName(destination);
+        userTrip newTrip = new userTrip(
+                destination,
+                startDate,
+                endDate,
+                collectEvents()
+        );
         newTrip.setStartDate(startDate);
         newTrip.setEndDate(endDate);
 
-        int defaultImage = getResources().getIdentifier("default_image", "drawable", getPackageName());
-        newTrip.setImageResId(defaultImage);
-
-        ArrayList<String> events = new ArrayList<>();
-        for (int i = 0; i < eventsContainer.getChildCount(); i++) {
-            LinearLayout layout = (LinearLayout) eventsContainer.getChildAt(i);
-            EditText et = (EditText) layout.getChildAt(0);
-            String text = et.getText().toString().trim();
-            if (!text.isEmpty()) events.add(text);
-        }
-        newTrip.setFamous(events);
-
-        ArrayList<Trip> savedTrips = loadTripsFromStorage();
+        ArrayList<userTrip> savedTrips = loadUserTrips();
         savedTrips.add(0, newTrip);
-        saveTripsToStorage(savedTrips);
+        saveUserTrips(savedTrips);
 
         Toast.makeText(this, "Trip saved!", Toast.LENGTH_SHORT).show();
         finish();
     }
 
-    private ArrayList<Trip> loadTripsFromStorage() {
-        try {
-            FileInputStream fis = openFileInput(USER_TRIPS_FILE);
-            InputStreamReader isr = new InputStreamReader(fis);
-            ArrayList<Trip> trips = new Gson().fromJson(isr, new TypeToken<ArrayList<Trip>>() {}.getType());
-            isr.close();
-            if (trips != null) return trips;
-        } catch (Exception ignored) {}
-        return new ArrayList<>();
+    private String collectEvents() {
+        StringBuilder notes = new StringBuilder();
+        for (int i = 0; i < eventsContainer.getChildCount(); i++) {
+            LinearLayout layout = (LinearLayout) eventsContainer.getChildAt(i);
+            EditText et = (EditText) layout.getChildAt(0);
+            String text = et.getText().toString().trim();
+            if (!text.isEmpty())
+                notes.append(text).append("\n");
+        }
+        return notes.toString().trim();
     }
 
-    private void saveTripsToStorage(ArrayList<Trip> trips) {
+    private ArrayList<userTrip> loadUserTrips() {
         try {
-            FileOutputStream fos = openFileOutput(USER_TRIPS_FILE, MODE_PRIVATE);
+            FileInputStream fis = openFileInput("user_trips.json");
+            InputStreamReader isr = new InputStreamReader(fis);
+            ArrayList<userTrip> list = new Gson().fromJson(isr, new TypeToken<ArrayList<userTrip>>() {
+            }.getType());
+            isr.close();
+            return list != null ? list : new ArrayList<>();
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private void saveUserTrips(ArrayList<userTrip> list) {
+        try {
+            FileOutputStream fos = openFileOutput("user_trips.json", MODE_PRIVATE);
             OutputStreamWriter osw = new OutputStreamWriter(fos);
-            new Gson().toJson(trips, osw);
+            new Gson().toJson(list, osw);
             osw.close();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

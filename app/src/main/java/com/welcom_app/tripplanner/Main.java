@@ -3,6 +3,7 @@ package com.welcom_app.tripplanner;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -71,6 +72,25 @@ public class Main extends AppCompatActivity {
         findViewById(R.id.seeAll).setOnClickListener(v ->
                 startActivity(new Intent(Main.this, SeeAllTrips.class))
         );
+        Button logoutBtn = findViewById(R.id.logoutBtn);
+        logoutBtn.setOnClickListener(v -> {
+            // Clear login state
+            SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("isLoggedIn", false);
+            editor.apply();
+
+            // Clear previous user's trips
+            deleteFile("user_trips.json");
+
+            // Go back to Login page
+            Intent intent = new Intent(Main.this, Login.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
+
+
+
     }
 
     @Override
@@ -140,8 +160,9 @@ public class Main extends AppCompatActivity {
     private void openUserTripDetails(Trip trip) {
         Intent intent = new Intent(Main.this, userTripDetails.class);
         intent.putExtra("userTripJson", new Gson().toJson(trip));
-        startActivity(intent);
+        startActivityForResult(intent, 102);
     }
+
 
     private String loadJson(String filename) {
         try {
@@ -164,4 +185,57 @@ public class Main extends AppCompatActivity {
         } catch (Exception ignored) {}
         return savedTrips != null ? savedTrips : new ArrayList<>();
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 102 && resultCode == RESULT_FIRST_USER && data != null) {
+            String cityToDelete = data.getStringExtra("deletedTripCity");
+            if (cityToDelete != null) {
+                // Remove from internal storage list
+                ArrayList<Trip> trips = loadTripsFromInternal();
+                Trip toRemove = null;
+                for (Trip t : trips) {
+                    if (t.getCityName().equalsIgnoreCase(cityToDelete)) {
+                        toRemove = t;
+                        break;
+                    }
+                }
+                if (toRemove != null) {
+                    trips.remove(toRemove);
+                    saveTripsToInternal(trips);
+                }
+
+                // Refresh RecyclerView
+                userTrips = trips;
+                ArrayList<Trip> userTripsDisplay = new ArrayList<>();
+                for (Trip userTrip : userTrips) {
+                    Trip match = null;
+                    for (Trip defaultTrip : defaultTrips) {
+                        if (defaultTrip.getCityName().equalsIgnoreCase(userTrip.getCityName())) {
+                            match = defaultTrip;
+                            break;
+                        }
+                    }
+                    if (match != null) userTripsDisplay.add(match);
+                    else {
+                        userTrip.setImageResId(0);
+                        userTripsDisplay.add(userTrip);
+                    }
+                }
+                TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, this::openUserTripDetails);
+                userTripsRecycler.setAdapter(userAdapter);
+            }
+        }
+    }
+    private void saveTripsToInternal(ArrayList<Trip> trips) {
+        try {
+            Gson gson = new Gson();
+            String json = gson.toJson(trips);
+            openFileOutput("user_trips.json", MODE_PRIVATE).write(json.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
