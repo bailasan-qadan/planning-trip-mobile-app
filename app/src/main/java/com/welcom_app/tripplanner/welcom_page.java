@@ -57,22 +57,24 @@ public class welcom_page extends AppCompatActivity {
             boolean onboardingShown = prefs.getBoolean("onboardingShown", false);
 
             Intent intent;
-            if (!isLoggedIn && !onboardingShown) {
-                // User not logged in & first time -> show onboarding
-                intent = new Intent(welcom_page.this, Onboarding.class);
-                prefs.edit().putBoolean("onboardingShown", true).apply();
-            } else if (isLoggedIn) {
+            if (isLoggedIn) {
                 // Already logged in -> go to Main
                 intent = new Intent(welcom_page.this, Main.class);
+            } else if (!onboardingShown) {
+                // First time -> show onboarding
+                intent = new Intent(welcom_page.this, Onboarding.class);
+                prefs.edit().putBoolean("onboardingShown", true).apply();
             } else {
                 // Not logged in & onboarding already shown -> go to Login
                 intent = new Intent(welcom_page.this, Login.class);
             }
 
+            // Clear back stack so user cannot go back to welcome screen
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            finish();
         }, 2000);
     }
+
 
 
     @Override
