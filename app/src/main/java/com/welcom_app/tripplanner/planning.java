@@ -95,14 +95,12 @@ public class planning extends AppCompatActivity {
         savedTrips.add(0, newTrip);
         saveUserTrips(savedTrips);
 
-        // OPEN DETAILS WITH THE SAME JSON (exactly like Edit flow uses)
         Intent intent = new Intent(this, userTripDetails.class);
         String json = new Gson().toJson(newTrip);
         intent.putExtra("userTripJson", json);
         startActivity(intent);
 
         Toast.makeText(this, "Trip saved!", Toast.LENGTH_SHORT).show();
-        // Optionally finish() if you don't want to keep planning on back stack
         finish();
     }
 

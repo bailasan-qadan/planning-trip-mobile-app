@@ -27,7 +27,7 @@ public class Main extends AppCompatActivity {
 
     private RecyclerView userTripsRecycler, tripsRecycler;
     private ArrayList<Trip> defaultTrips;
-    private ArrayList<userTrip> userTrips; // FIX: use userTrip for user-entered trips
+    private ArrayList<userTrip> userTrips;
     private SharedPreferences prefs;
 
     @Override
@@ -47,7 +47,6 @@ public class Main extends AppCompatActivity {
         userTripsRecycler = findViewById(R.id.userTripsRecycler);
         tripsRecycler = findViewById(R.id.tripsRecyclerView);
 
-        // Load static trips from assets
         String json = loadJson("trips.json");
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
@@ -58,7 +57,13 @@ public class Main extends AppCompatActivity {
             trip.setImageResId(id);
         }
 
-        TripAdapter exploreAdapter = new TripAdapter(this, defaultTrips, this::openTripDetails);
+        ArrayList<Trip> limitedTrips = new ArrayList<>();
+        int maxDisplay = Math.min(defaultTrips.size(), 5);
+        for (int i = 0; i < maxDisplay; i++) {
+            limitedTrips.add(defaultTrips.get(i));
+        }
+
+        TripAdapter exploreAdapter = new TripAdapter(this, limitedTrips, this::openTripDetails);
         tripsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         tripsRecycler.setAdapter(exploreAdapter);
 
@@ -70,9 +75,11 @@ public class Main extends AppCompatActivity {
                 startActivity(new Intent(Main.this, planning.class))
         );
 
-        findViewById(R.id.seeAll).setOnClickListener(v ->
-                startActivity(new Intent(Main.this, SeeAllTrips.class))
-        );
+        findViewById(R.id.seeAll).setOnClickListener(v -> {
+            Intent intent = new Intent(Main.this, SeeAllTrips.class);
+            intent.putExtra("allTripsJson", new Gson().toJson(defaultTrips));
+            startActivity(intent);
+        });
 
         Button logoutBtn = findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(v -> {
@@ -126,7 +133,6 @@ public class Main extends AppCompatActivity {
         }
 
         TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, trip -> {
-            // Always pass the full userTripJson so details show events/dates
             userTrip uTrip = findUserTripByCity(trip.getCityName());
             if (uTrip != null) {
                 Intent intent = new Intent(Main.this, userTripDetails.class);

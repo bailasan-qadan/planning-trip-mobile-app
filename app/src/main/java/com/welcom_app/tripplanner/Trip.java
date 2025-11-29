@@ -48,7 +48,6 @@ public class Trip {
     public String getSafety() { return safety; }
     public List<String> getFamous() { return famous; }
 
-    // Setters
     public void setCityName(String cityName) { this.cityName = cityName; }
     public void setCountry(String country) { this.country = country; }
     public void setImage(String image) { this.image = image; }

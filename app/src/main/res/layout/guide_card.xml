@@ -26,7 +26,7 @@
             android:id="@+id/cardTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Trip Guide"
+            android:text="@string/trip_guide"
             android:textColor="#003C2A"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Know before you go ,everything about your next destination ,Explore any city."
+            android:text="@string/know_before_you_go_everything_about_your_next_destination_explore_any_city"
             android:textColor="#667085"
             android:textSize="14sp" />
 
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:backgroundTint="#003C2A"
-            android:text="Explore"
+            android:text="@string/explore"
             android:textColor="#FFF" />
     </LinearLayout>
 

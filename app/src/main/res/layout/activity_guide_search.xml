@@ -47,7 +47,7 @@
             android:layout_height="50dp"
             android:background="@drawable/search_bg"
             android:drawableStart="@drawable/search"
-            android:hint="Where are you headed?"
+            android:hint="@string/where_are_you_headed"
             android:padding="12dp" />
 
         <androidx.recyclerview.widget.RecyclerView

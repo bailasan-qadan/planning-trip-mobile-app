@@ -58,14 +58,11 @@ public class welcom_page extends AppCompatActivity {
 
             Intent intent;
             if (isLoggedIn) {
-                // Already logged in → go to Main
                 intent = new Intent(welcom_page.this, Main.class);
             } else if (!onboardingShown) {
-                // First time → show Onboarding
                 intent = new Intent(welcom_page.this, Onboarding.class);
                 prefs.edit().putBoolean("onboardingShown", true).apply();
             } else {
-                // Not logged in but onboarding already seen → go to Login
                 intent = new Intent(welcom_page.this, Login.class);
             }
 

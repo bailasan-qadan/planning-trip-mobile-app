@@ -25,7 +25,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Destination"
+                android:text="@string/destination"
                 android:textColor="#48382D"
                 android:textSize="14sp" />
 
@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="20dp"
                 android:background="@drawable/text"
-                android:hint="Enter Destination"
+                android:hint="@string/enter_destination"
                 android:inputType="text"
                 android:padding="16dp"
                 android:textColor="#48382D"
@@ -61,7 +61,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="Start Date"
+                        android:text="@string/start_date"
                         android:textColor="#48382D"
                         android:textSize="14sp" />
 
@@ -71,7 +71,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="20dp"
                         android:background="@drawable/text"
-                        android:hint="DD/MM/YYYY"
+                        android:hint="@string/dd_mm_yyyy"
                         android:inputType="none"
                         android:focusable="false"
                         android:clickable="true"
@@ -95,7 +95,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="End Date"
+                        android:text="@string/end_date"
                         android:textColor="#48382D"
                         android:textSize="14sp" />
 
@@ -105,7 +105,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="20dp"
                         android:background="@drawable/text"
-                        android:hint="DD/MM/YYYY"
+                        android:hint="@string/dd_mm_yyyy"
                         android:inputType="none"
                         android:focusable="false"
                         android:clickable="true"
@@ -124,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                android:text="Events"
+                android:text="@string/events"
                 android:textColor="#48382D"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -148,7 +148,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="@drawable/button"
-                    android:contentDescription="Add Event"
+                    android:contentDescription="@string/add_event"
                     android:src="@drawable/add" />
             </LinearLayout>
 
@@ -160,7 +160,7 @@
                 android:layout_marginTop="24dp"
                 android:background="@drawable/button"
                 android:padding="16dp"
-                android:text="Save Changes"
+                android:text="@string/save_changes"
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />

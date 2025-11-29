@@ -115,7 +115,6 @@ public class Guide_Search extends AppCompatActivity {
         super.onPause();
         Log.d(TAG, "onPause called");
 
-        // Save the current search text
         prefs.edit().putString("guide_last_search", search.getText().toString()).apply();
     }
 

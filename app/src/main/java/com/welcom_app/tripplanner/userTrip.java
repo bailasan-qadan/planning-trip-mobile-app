@@ -3,10 +3,10 @@ package com.welcom_app.tripplanner;
 import java.util.ArrayList;
 
 public class userTrip {
-    private String cityName;     // Destination chosen by the user
-    private String startDate;    // User’s start date
-    private String endDate;      // User’s end date
-    private String notes;// Description or events user writes
+    private String cityName;
+    private String startDate;
+    private String endDate;
+    private String notes;
 
     public userTrip(){}
     public userTrip(String cityName, String startDate, String endDate, String notes) {

@@ -26,7 +26,7 @@
             android:id="@+id/cardTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Plan Your Trip"
+            android:text="@string/plan_your_trip"
             android:textColor="#003C2A"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Where to next? Your adventure begins here, Plan it your way."
+            android:text="@string/where_to_next_your_adventure_begins_here_plan_it_your_way"
             android:textColor="#667085"
             android:textSize="14sp" />
 
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:backgroundTint="#003C2A"
-            android:text="Start Planning"
+            android:text="@string/start_planning"
             android:textColor="#FFF" />
     </LinearLayout>
 

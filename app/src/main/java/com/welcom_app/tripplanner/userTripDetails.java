@@ -103,14 +103,12 @@ public class userTripDetails extends AppCompatActivity {
     private void updateUI() {
         if (userTrip == null) return;
 
-        // Always show user-entered info
         cityText.setText(userTrip.getCityName());
         countryText.setText(userTrip.getCityName()); // optional
         userDates.setText(userTrip.getStartDate() + " → " + userTrip.getEndDate());
         userNotes.setText(userTrip.getNotes() == null || userTrip.getNotes().isEmpty()
                 ? "No events" : userTrip.getNotes());
 
-        // Show static guide info if available
         if (originalTrip != null) {
             imageView.setImageResource(originalTrip.getImageResId());
             restaurantsText.setText("Restaurants:\n" + android.text.TextUtils.join(", ", originalTrip.getRestaurants()));

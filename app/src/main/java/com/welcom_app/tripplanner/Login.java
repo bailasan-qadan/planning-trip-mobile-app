@@ -195,7 +195,6 @@ public class Login extends AppCompatActivity {
         String storedEmail = sharedPreferences.getString(KEY_EMAIL, null);
         String storedPassword = sharedPreferences.getString(KEY_PASSWORD, null);
 
-        // No account
         if (storedEmail == null) {
             Toast.makeText(this, "No account found. Please sign up first.", Toast.LENGTH_SHORT).show();
             return;

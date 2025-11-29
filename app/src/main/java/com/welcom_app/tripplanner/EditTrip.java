@@ -44,28 +44,23 @@ public class EditTrip extends AppCompatActivity {
             return insets;
         });
 
-        // Bind views
         editDestination = findViewById(R.id.etDestination);
         editStartDate = findViewById(R.id.etStartDate);
         editEndDate = findViewById(R.id.etEndDate);
         btnSave = findViewById(R.id.btnSaveTrip);
         btnAddEvent = findViewById(R.id.btnAddEvent);
 
-        // Get the userTrip object passed from details
         String userTripJson = getIntent().getStringExtra("userTripJson");
         if (userTripJson != null) {
             userTripData = new Gson().fromJson(userTripJson, userTrip.class);
             populateFields();
         }
 
-        // Date pickers
         editStartDate.setOnClickListener(v -> showDatePicker(editStartDate));
         editEndDate.setOnClickListener(v -> showDatePicker(editEndDate));
 
-        // Add event button
         btnAddEvent.setOnClickListener(v -> addEventView(null));
 
-        // Save button
         btnSave.setOnClickListener(v -> saveTrip());
     }
 
@@ -74,7 +69,6 @@ public class EditTrip extends AppCompatActivity {
         editStartDate.setText(userTripData.getStartDate());
         editEndDate.setText(userTripData.getEndDate());
 
-        // Populate existing events from notes
         if (userTripData.getNotes() != null && !userTripData.getNotes().isEmpty()) {
             String[] events = userTripData.getNotes().split("\n");
             for (String e : events) {
@@ -156,11 +150,10 @@ public class EditTrip extends AppCompatActivity {
             }
         }
         if (!replaced) {
-            trips.add(userTripData); // if not found, add new
+            trips.add(userTripData);
         }
         saveUserTrips(trips);
 
-        // Return edited trip back to details page
         Intent result = new Intent();
         result.putExtra("editedTripJson", new Gson().toJson(userTripData));
         setResult(RESULT_OK, result);

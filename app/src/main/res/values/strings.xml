@@ -23,4 +23,29 @@
         <font color="#48382D">Not a member? </font>
         <font color="#936247">Register now</font>
     </string>
+    <string name="destination">Destination</string>
+    <string name="enter_destination">Enter Destination</string>
+    <string name="start_date">Start Date</string>
+    <string name="dd_mm_yyyy">DD/MM/YYYY</string>
+    <string name="end_date">End Date</string>
+    <string name="events">Events</string>
+    <string name="add_event">Add Event</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="where_are_you_headed">Where are you headed?</string>
+    <string name="logout">Logout</string>
+    <string name="my_trips">My Trips</string>
+    <string name="explore_trips">Explore Trips</string>
+    <string name="see_all">See All</string>
+    <string name="start_my_trip">Start My Trip</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="eventss">Events:</string>
+    <string name="extra_guide">Extra Guide:</string>
+    <string name="trip_guide">Trip Guide</string>
+    <string name="know_before_you_go_everything_about_your_next_destination_explore_any_city">Know before you go ,everything about your next destination ,Explore any city.</string>
+    <string name="explore">Explore</string>
+    <string name="plan_your_trip">Plan Your Trip</string>
+    <string name="where_to_next_your_adventure_begins_here_plan_it_your_way">Where to next? Your adventure begins here, Plan it your way.</string>
+    <string name="start_planning">Start Planning</string>
+    <string name="tokyo">Tokyo</string>
 </resources>
