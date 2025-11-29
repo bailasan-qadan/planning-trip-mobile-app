@@ -21,32 +21,29 @@ import java.util.Scanner;
 
 public class SeeAllTrips extends AppCompatActivity {
 
+    private static final String PREF = "trip_prefs";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_see_all_trips);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         RecyclerView recycler = findViewById(R.id.seeAllRecycler);
 
-        // load ALL trips again from JSON
         String json = loadJson("trips.json");
-
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
         ArrayList<Trip> trips = gson.fromJson(json, listType);
 
-        // convert image names → drawable
         for (Trip trip : trips) {
-            int id = getResources().getIdentifier(
-                    trip.getImage(),
-                    "drawable",
-                    getPackageName()
-            );
+            int id = getResources().getIdentifier(trip.getImage(), "drawable", getPackageName());
             trip.setImageResId(id);
         }
 
@@ -68,7 +65,38 @@ public class SeeAllTrips extends AppCompatActivity {
                     intent.putStringArrayListExtra("famous", new ArrayList<>(trip.getFamous()));
                     startActivity(intent);
                 }
-        );        recycler.setAdapter(adapter);
+        );
+
+        recycler.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSharedPreferences(PREF, MODE_PRIVATE)
+                .edit()
+                .putString("last_screen", "SeeAllTrips")
+                .apply();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private String loadJson(String filename) {
@@ -77,7 +105,6 @@ public class SeeAllTrips extends AppCompatActivity {
             Scanner scanner = new Scanner(is).useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";
         } catch (Exception e) {
-            e.printStackTrace();
             return "";
         }
     }

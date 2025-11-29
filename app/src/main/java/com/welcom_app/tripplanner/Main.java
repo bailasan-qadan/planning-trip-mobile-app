@@ -1,7 +1,9 @@
 package com.welcom_app.tripplanner;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -24,22 +26,26 @@ public class Main extends AppCompatActivity {
 
     private RecyclerView userTripsRecycler, tripsRecycler;
     private ArrayList<Trip> defaultTrips, userTrips;
+    private SharedPreferences prefs;
+    private static final String TAG = "MainLifecycle";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        prefs = getSharedPreferences("trip_prefs", MODE_PRIVATE);
+
         userTripsRecycler = findViewById(R.id.userTripsRecycler);
         tripsRecycler = findViewById(R.id.tripsRecyclerView);
 
-        // Load default trips from assets
         String json = loadJson("trips.json");
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
@@ -50,38 +56,41 @@ public class Main extends AppCompatActivity {
             trip.setImageResId(id);
         }
 
-        // Setup default trips RecyclerView
         TripAdapter exploreAdapter = new TripAdapter(this, defaultTrips, this::openTripDetails);
         tripsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         tripsRecycler.setAdapter(exploreAdapter);
 
-        // Buttons
         findViewById(R.id.exploreButton).setOnClickListener(v ->
                 startActivity(new Intent(Main.this, Guide_Search.class))
         );
+
         findViewById(R.id.startPlanBtn).setOnClickListener(v ->
                 startActivity(new Intent(Main.this, planning.class))
         );
+
         findViewById(R.id.seeAll).setOnClickListener(v ->
                 startActivity(new Intent(Main.this, SeeAllTrips.class))
         );
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        prefs.edit().putString("last_screen", "Main").apply();
 
-        // Load user trips
         userTrips = loadTripsFromInternal();
-
-        // Build display list for user trips
         ArrayList<Trip> userTripsDisplay = new ArrayList<>();
+
         for (Trip userTrip : userTrips) {
             Trip match = null;
             for (Trip defaultTrip : defaultTrips) {
                 if (defaultTrip.getCityName().equalsIgnoreCase(userTrip.getCityName())) {
-                    match = defaultTrip; // image + country
+                    match = defaultTrip;
                     break;
                 }
             }
@@ -92,12 +101,27 @@ public class Main extends AppCompatActivity {
             }
         }
 
-        // Use openUserTripDetails()
         TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, this::openUserTripDetails);
         userTripsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         userTripsRecycler.setAdapter(userAdapter);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        prefs.edit().putBoolean("main_active", true).apply();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        prefs.edit().putBoolean("main_visible", false).apply();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     private void openTripDetails(Trip trip) {
         Intent intent = new Intent(Main.this, TripDetails.class);
@@ -113,13 +137,18 @@ public class Main extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void openUserTripDetails(Trip trip) {
+        Intent intent = new Intent(Main.this, userTripDetails.class);
+        intent.putExtra("userTripJson", new Gson().toJson(trip));
+        startActivity(intent);
+    }
+
     private String loadJson(String filename) {
         try {
             InputStream is = getAssets().open(filename);
             Scanner scanner = new Scanner(is).useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : "";
         } catch (Exception e) {
-            e.printStackTrace();
             return "";
         }
     }
@@ -132,17 +161,7 @@ public class Main extends AppCompatActivity {
             Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
             savedTrips = gson.fromJson(new InputStreamReader(fis), listType);
             fis.close();
-        } catch (Exception e) {
-            // File may not exist yet
-        }
+        } catch (Exception ignored) {}
         return savedTrips != null ? savedTrips : new ArrayList<>();
     }
-    private void openUserTripDetails(Trip trip) {
-        Intent intent = new Intent(Main.this, userTripDetails.class);
-        intent.putExtra("userTripJson", new Gson().toJson(trip)); // <-- key must match
-        startActivity(intent);
-    }
-
-
-
 }

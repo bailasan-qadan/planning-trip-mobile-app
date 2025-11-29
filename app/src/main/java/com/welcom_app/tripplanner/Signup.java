@@ -45,32 +45,58 @@ public class Signup extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        // Initialize SharedPreferences
+
         sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
 
-        // Check if user is already logged in
         if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)) {
-            // Navigate to main activity
             navigateToMain();
             return;
         }
 
-        // Initialize views
         initViews();
-
-        // Setup login link with colored text
         setupLoginLink();
-
-        // Setup password toggle
         setupPasswordToggle();
-
-        // Setup sign up button
         setupSignUpButton();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSharedPreferences("trip_prefs", MODE_PRIVATE)
+                .edit()
+                .putString("last_screen", "Signup")
+                .apply();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getSharedPreferences("trip_prefs", MODE_PRIVATE)
+                .edit()
+                .putString("draft_signup_email", emailInput.getText().toString())
+                .putString("draft_signup_fullname", fullNameInput.getText().toString())
+                .apply();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void initViews() {
@@ -80,80 +106,52 @@ public class Signup extends AppCompatActivity {
         signUpBtn = findViewById(R.id.signUpBtn);
         loginLink = findViewById(R.id.loginLink);
         togglePassword = findViewById(R.id.togglePassword);
+
+        fullNameInput.setText(sharedPreferences.getString("draft_signup_fullname", ""));
+        emailInput.setText(sharedPreferences.getString("draft_signup_email", ""));
     }
 
     private void setupLoginLink() {
         String text = "Already have an account? Login Here";
-        SpannableString spannableString = new SpannableString(text);
+        SpannableString span = new SpannableString(text);
 
-        // Make "Already have an account?" black
-        spannableString.setSpan(
-                new ForegroundColorSpan(Color.BLACK),
-                0,
-                25,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
+        span.setSpan(new ForegroundColorSpan(Color.BLACK), 0, 25, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new ForegroundColorSpan(Color.parseColor("#1B5E47")), 25, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        // Make "Login Here" green/blue
-        spannableString.setSpan(
-                new ForegroundColorSpan(Color.parseColor("#1B5E47")),
-                25,
-                text.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
-
-        // Make "Login Here" clickable
-        ClickableSpan clickableSpan = new ClickableSpan() {
+        span.setSpan(new ClickableSpan() {
             @Override
             public void onClick(View widget) {
                 navigateToLogin();
             }
-        };
-        spannableString.setSpan(
-                clickableSpan,
-                25,
-                text.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
+        }, 25, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        loginLink.setText(spannableString);
+        loginLink.setText(span);
         loginLink.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     private void setupPasswordToggle() {
-        togglePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isPasswordVisible) {
-                    // Hide password
-                    passwordInput.setInputType(
-                            android.text.InputType.TYPE_CLASS_TEXT |
-                                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                    );
-                    togglePassword.setImageResource(R.drawable.pass); // eye closed icon
-                    isPasswordVisible = false;
-                } else {
-                    // Show password
-                    passwordInput.setInputType(
-                            android.text.InputType.TYPE_CLASS_TEXT |
-                                    android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                    );
-                    togglePassword.setImageResource(R.drawable.pass); // eye open icon
-                    isPasswordVisible = true;
-                }
-                // Move cursor to end
-                passwordInput.setSelection(passwordInput.getText().length());
+        togglePassword.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                passwordInput.setInputType(
+                        android.text.InputType.TYPE_CLASS_TEXT |
+                                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                );
+                togglePassword.setImageResource(R.drawable.pass);
+                isPasswordVisible = false;
+            } else {
+                passwordInput.setInputType(
+                        android.text.InputType.TYPE_CLASS_TEXT |
+                                android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                );
+                togglePassword.setImageResource(R.drawable.pass);
+                isPasswordVisible = true;
             }
+            passwordInput.setSelection(passwordInput.getText().length());
         });
     }
 
     private void setupSignUpButton() {
-        signUpBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                handleSignUp();
-            }
-        });
+        signUpBtn.setOnClickListener(v -> handleSignUp());
     }
 
     private void handleSignUp() {
@@ -161,7 +159,6 @@ public class Signup extends AppCompatActivity {
         String email = emailInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
 
-        // Validation
         if (TextUtils.isEmpty(fullName)) {
             fullNameInput.setError("Full name is required");
             fullNameInput.requestFocus();
@@ -174,7 +171,7 @@ public class Signup extends AppCompatActivity {
             return;
         }
 
-        if (!isValidEmail(email)) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             emailInput.setError("Please enter a valid email");
             emailInput.requestFocus();
             return;
@@ -192,7 +189,6 @@ public class Signup extends AppCompatActivity {
             return;
         }
 
-        // Check if user already exists
         String existingEmail = sharedPreferences.getString(KEY_EMAIL, null);
         if (existingEmail != null && existingEmail.equals(email)) {
             Toast.makeText(this, "Account already exists. Please login.", Toast.LENGTH_SHORT).show();
@@ -200,7 +196,6 @@ public class Signup extends AppCompatActivity {
             return;
         }
 
-        // Save user data to SharedPreferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(KEY_FULL_NAME, fullName);
         editor.putString(KEY_EMAIL, email);
@@ -209,24 +204,16 @@ public class Signup extends AppCompatActivity {
         editor.apply();
 
         Toast.makeText(this, "Sign up successful!", Toast.LENGTH_SHORT).show();
-
-        // Navigate to main activity
         navigateToMain();
     }
 
-    private boolean isValidEmail(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
     private void navigateToLogin() {
-        Intent intent = new Intent(Signup.this, Login.class);
-        startActivity(intent);
+        startActivity(new Intent(Signup.this, Login.class));
         finish();
     }
 
     private void navigateToMain() {
-        Intent intent = new Intent(Signup.this, Main.class);
-        startActivity(intent);
+        startActivity(new Intent(Signup.this, Main.class));
         finish();
     }
 }

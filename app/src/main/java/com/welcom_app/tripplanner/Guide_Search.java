@@ -1,9 +1,11 @@
 package com.welcom_app.tripplanner;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 
 import androidx.activity.EdgeToEdge;
@@ -12,7 +14,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
@@ -24,37 +25,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Guide_Search extends AppCompatActivity {
+
     private List<Trip> allCities = new ArrayList<>();
     private List<Trip> filteredCities = new ArrayList<>();
     private TripAdapter tripAdapter;
+
+    private EditText search;
+
+    private SharedPreferences prefs;
+
+    private static final String TAG = "GuideSearchLifecycle";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_guide_search);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        RecyclerView recycler = findViewById(R.id.guideRecycler);
-        EditText search = findViewById(R.id.guideSearch);
+        Log.d(TAG, "onCreate called");
 
-        // Load all trips from JSON
+        prefs = getSharedPreferences("trip_prefs", MODE_PRIVATE);
+
+        RecyclerView recycler = findViewById(R.id.guideRecycler);
+        search = findViewById(R.id.guideSearch);
+
         loadCitiesFromJSON();
 
-        // Convert image names to drawable IDs (like SeeAllTrips)
         for (Trip trip : allCities) {
             int id = getResources().getIdentifier(trip.getImage(), "drawable", getPackageName());
             trip.setImageResId(id);
         }
 
-        // Initialize filtered list
         filteredCities.addAll(allCities);
 
-        // Setup adapter with click listener
         tripAdapter = new TripAdapter(this, new ArrayList<>(filteredCities), trip -> {
             Intent intent = new Intent(Guide_Search.this, TripDetailsGuide.class);
             intent.putExtra("cityName", trip.getCityName());
@@ -67,18 +76,59 @@ public class Guide_Search extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Use GridLayoutManager like SeeAllTrips for the same card layout
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(tripAdapter);
 
-        // Search filter
+        String lastSearch = prefs.getString("guide_last_search", "");
+        search.setText(lastSearch);
+        filterCities(lastSearch);
+
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterCities(s.toString());
             }
+
             @Override public void afterTextChanged(Editable s) {}
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called");
+
+        // Save that the user opened this screen
+        prefs.edit().putString("last_screen", "Guide_Search").apply();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause called");
+
+        // Save the current search text
+        prefs.edit().putString("guide_last_search", search.getText().toString()).apply();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy called");
     }
 
     private void loadCitiesFromJSON() {
@@ -87,9 +137,10 @@ public class Guide_Search extends AppCompatActivity {
             byte[] buffer = new byte[is.available()];
             is.read(buffer);
             is.close();
-            String json = new String(buffer, StandardCharsets.UTF_8);
 
+            String json = new String(buffer, StandardCharsets.UTF_8);
             allCities = new Gson().fromJson(json, new TypeToken<List<Trip>>(){}.getType());
+
         } catch (Exception e) {
             e.printStackTrace();
         }

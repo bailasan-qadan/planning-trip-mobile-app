@@ -1,19 +1,18 @@
 package com.welcom_app.tripplanner;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import android.app.DatePickerDialog;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -23,14 +22,14 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
-
 
 public class planning extends AppCompatActivity {
+
     private static final String USER_TRIPS_FILE = "user_trips.json";
+    private static final String PREF = "trip_prefs";
+
     private EditText etDestination, etStartDate, etEndDate;
     private Button btnStartTrip;
     private LinearLayout eventsContainer;
@@ -41,6 +40,7 @@ public class planning extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_planning);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -56,20 +56,55 @@ public class planning extends AppCompatActivity {
 
         etStartDate.setOnClickListener(v -> showDatePicker(etStartDate));
         etEndDate.setOnClickListener(v -> showDatePicker(etEndDate));
-
         btnAddEvent.setOnClickListener(v -> addEventView(null));
-
         btnStartTrip.setOnClickListener(v -> saveTrip());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSharedPreferences(PREF, MODE_PRIVATE)
+                .edit()
+                .putString("last_screen", "planning")
+                .apply();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getSharedPreferences(PREF, MODE_PRIVATE)
+                .edit()
+                .putString("draft_destination", etDestination.getText().toString())
+                .putString("draft_start_date", etStartDate.getText().toString())
+                .putString("draft_end_date", etEndDate.getText().toString())
+                .apply();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private void showDatePicker(EditText target) {
         Calendar c = Calendar.getInstance();
-        int y = c.get(Calendar.YEAR);
-        int m = c.get(Calendar.MONTH);
-        int d = c.get(Calendar.DAY_OF_MONTH);
-
-        DatePickerDialog dp = new DatePickerDialog(this, (view, year, month, dayOfMonth) ->
-                target.setText(String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)), y, m, d);
+        DatePickerDialog dp = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) ->
+                        target.setText(String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)),
+                c.get(Calendar.YEAR),
+                c.get(Calendar.MONTH),
+                c.get(Calendar.DAY_OF_MONTH)
+        );
         dp.show();
     }
 
@@ -85,7 +120,8 @@ public class planning extends AppCompatActivity {
         EditText eventInput = new EditText(this);
         eventInput.setLayoutParams(new LinearLayout.LayoutParams(
                 0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
         ));
         eventInput.setBackgroundResource(R.drawable.text);
         eventInput.setHint("Enter Event");
@@ -98,7 +134,6 @@ public class planning extends AppCompatActivity {
 
         layout.addView(eventInput);
         layout.addView(btnDelete);
-
         eventsContainer.addView(layout);
     }
 
@@ -117,11 +152,9 @@ public class planning extends AppCompatActivity {
         newTrip.setStartDate(startDate);
         newTrip.setEndDate(endDate);
 
-        // Default image for user-created trips
         int defaultImage = getResources().getIdentifier("default_image", "drawable", getPackageName());
         newTrip.setImageResId(defaultImage);
 
-        // collect events
         ArrayList<String> events = new ArrayList<>();
         for (int i = 0; i < eventsContainer.getChildCount(); i++) {
             LinearLayout layout = (LinearLayout) eventsContainer.getChildAt(i);
@@ -131,13 +164,12 @@ public class planning extends AppCompatActivity {
         }
         newTrip.setFamous(events);
 
-        // Save to JSON
         ArrayList<Trip> savedTrips = loadTripsFromStorage();
-        savedTrips.add(0, newTrip); // newest first
+        savedTrips.add(0, newTrip);
         saveTripsToStorage(savedTrips);
 
         Toast.makeText(this, "Trip saved!", Toast.LENGTH_SHORT).show();
-        finish(); // return to MainActivity
+        finish();
     }
 
     private ArrayList<Trip> loadTripsFromStorage() {
@@ -147,7 +179,7 @@ public class planning extends AppCompatActivity {
             ArrayList<Trip> trips = new Gson().fromJson(isr, new TypeToken<ArrayList<Trip>>() {}.getType());
             isr.close();
             if (trips != null) return trips;
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception ignored) {}
         return new ArrayList<>();
     }
 
@@ -157,6 +189,6 @@ public class planning extends AppCompatActivity {
             OutputStreamWriter osw = new OutputStreamWriter(fos);
             new Gson().toJson(trips, osw);
             osw.close();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception ignored) {}
     }
 }
