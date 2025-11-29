@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    android:id="@+id/main"
+    >
+
+    <!-- TOP IMAGE -->
+    <ImageView
+        android:id="@+id/onboard_image"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="centerCrop"
+        android:src="@drawable/onboarding" />
+
+    <!-- WHITE BOTTOM CARD -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_top_white"
+        android:padding="24dp"
+        android:orientation="vertical"
+        android:elevation="4dp"
+        android:layout_marginTop="-32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/plan_your_perfect_trip"
+            android:textColor="#936247"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="4dp"
+            android:paddingTop="12dp"
+            android:text="@string/arrivo_helps_you_design_unforgettable_journeys_with_ease_choose_your_destination_set_your_dates_and_the_app_guides_you_with_recommendations_for_hotels_restaurants_attractions_and_local_activities_whether_you_re_planning_ahead_or_exploring_a_place_you_re_already_in_arrivo_suggests_the_best_spots_and_even_offers_ready_made_trip_ideas_to_inspire_your_next_adventure"
+            android:textColor="#48382D" />
+
+        <Button
+            android:id="@+id/getStartedBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="#48382D"
+            android:paddingLeft="20dp"
+            android:paddingTop="10dp"
+            android:paddingRight="20dp"
+            android:paddingBottom="10dp"
+            android:text="@string/get_started"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Trip Planner</string>
+    <string name="arrivo">Arrivo</string>
+    <string name="plan_your_perfect_trip">Plan Your Perfect Trip</string>
+    <string name="arrivo_helps_you_design_unforgettable_journeys_with_ease_choose_your_destination_set_your_dates_and_the_app_guides_you_with_recommendations_for_hotels_restaurants_attractions_and_local_activities_whether_you_re_planning_ahead_or_exploring_a_place_you_re_already_in_arrivo_suggests_the_best_spots_and_even_offers_ready_made_trip_ideas_to_inspire_your_next_adventure">Arrivo helps you design unforgettable journeys with ease. Choose your destination, set your dates, and the app guides you with recommendations for hotels, restaurants, attractions, and local activities. Whether you\'re planning ahead or exploring a place you\'re already in, Arrivo suggests the best spots and even offers ready-made trip ideas to inspire your next adventure.</string>
+    <string name="get_started">Get Started</string>
+    <string name="arriv">Arrivo</string>
+    <string name="login_text">
+        <font color="#48382D">Already have an account? </font>
+        <font color="#936247">Login Here</font>
+
+</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="pass_hint">••••••••••••••••••••</string>
+    <string name="password">Password</string>
+    <string name="loremipsumdolor_gmail_com">Loremipsumdolor@gmail.com</string>
+    <string name="email">Email</string>
+    <string name="lorem_ipsum_dolor">Lorem ipsum dolor</string>
+    <string name="full_name">Full Name</string>
+    <string name="login">Login</string>
+    <string name="signup_text">
+        <font color="#48382D">Not a member? </font>
+        <font color="#936247">Register now</font>
+    </string>
+</resources>
