@@ -6,8 +6,9 @@ public class userTrip {
     private String cityName;     // Destination chosen by the user
     private String startDate;    // User’s start date
     private String endDate;      // User’s end date
-    private String notes;        // Description or events user writes
+    private String notes;// Description or events user writes
 
+    public userTrip(){}
     public userTrip(String cityName, String startDate, String endDate, String notes) {
         this.cityName = cityName;
         this.startDate = startDate;

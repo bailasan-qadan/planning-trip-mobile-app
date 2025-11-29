@@ -26,9 +26,9 @@ import java.util.Scanner;
 public class Main extends AppCompatActivity {
 
     private RecyclerView userTripsRecycler, tripsRecycler;
-    private ArrayList<Trip> defaultTrips, userTrips;
+    private ArrayList<Trip> defaultTrips;
+    private ArrayList<userTrip> userTrips; // FIX: use userTrip for user-entered trips
     private SharedPreferences prefs;
-    private static final String TAG = "MainLifecycle";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +47,7 @@ public class Main extends AppCompatActivity {
         userTripsRecycler = findViewById(R.id.userTripsRecycler);
         tripsRecycler = findViewById(R.id.tripsRecyclerView);
 
+        // Load static trips from assets
         String json = loadJson("trips.json");
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
@@ -72,30 +73,20 @@ public class Main extends AppCompatActivity {
         findViewById(R.id.seeAll).setOnClickListener(v ->
                 startActivity(new Intent(Main.this, SeeAllTrips.class))
         );
+
         Button logoutBtn = findViewById(R.id.logoutBtn);
         logoutBtn.setOnClickListener(v -> {
-            // Clear login state
             SharedPreferences sharedPreferences = getSharedPreferences("UserPrefs", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean("isLoggedIn", false);
             editor.apply();
 
-            // Clear previous user's trips
             deleteFile("user_trips.json");
 
-            // Go back to Login page
             Intent intent = new Intent(Main.this, Login.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         });
-
-
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
     }
 
     @Override
@@ -106,41 +97,45 @@ public class Main extends AppCompatActivity {
         userTrips = loadTripsFromInternal();
         ArrayList<Trip> userTripsDisplay = new ArrayList<>();
 
-        for (Trip userTrip : userTrips) {
+        for (userTrip uTrip : userTrips) {
             Trip match = null;
             for (Trip defaultTrip : defaultTrips) {
-                if (defaultTrip.getCityName().equalsIgnoreCase(userTrip.getCityName())) {
+                if (defaultTrip.getCityName().equalsIgnoreCase(uTrip.getCityName())) {
                     match = defaultTrip;
                     break;
                 }
             }
-            if (match != null) userTripsDisplay.add(match);
-            else {
-                userTrip.setImageResId(0);
-                userTripsDisplay.add(userTrip);
+
+            Trip merged = new Trip();
+            merged.setCityName(uTrip.getCityName());
+            merged.setStartDate(uTrip.getStartDate());
+            merged.setEndDate(uTrip.getEndDate());
+
+            if (match != null) {
+                merged.setCountry(match.getCountry());
+                merged.setImageResId(getResources().getIdentifier(match.getImage(), "drawable", getPackageName()));
+                merged.setRestaurants(match.getRestaurants());
+                merged.setHotels(match.getHotels());
+                merged.setFamous(match.getFamous());
+                merged.setSafety(match.getSafety());
+            } else {
+                merged.setImageResId(0);
             }
+
+            userTripsDisplay.add(merged);
         }
 
-        TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, this::openUserTripDetails);
+        TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, trip -> {
+            // Always pass the full userTripJson so details show events/dates
+            userTrip uTrip = findUserTripByCity(trip.getCityName());
+            if (uTrip != null) {
+                Intent intent = new Intent(Main.this, userTripDetails.class);
+                intent.putExtra("userTripJson", new Gson().toJson(uTrip));
+                startActivityForResult(intent, 102);
+            }
+        });
         userTripsRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         userTripsRecycler.setAdapter(userAdapter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        prefs.edit().putBoolean("main_active", true).apply();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        prefs.edit().putBoolean("main_visible", false).apply();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
     }
 
     private void openTripDetails(Trip trip) {
@@ -157,12 +152,12 @@ public class Main extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void openUserTripDetails(Trip trip) {
-        Intent intent = new Intent(Main.this, userTripDetails.class);
-        intent.putExtra("userTripJson", new Gson().toJson(trip));
-        startActivityForResult(intent, 102);
+    private userTrip findUserTripByCity(String cityName) {
+        for (userTrip u : userTrips) {
+            if (u.getCityName().equalsIgnoreCase(cityName)) return u;
+        }
+        return null;
     }
-
 
     private String loadJson(String filename) {
         try {
@@ -174,17 +169,18 @@ public class Main extends AppCompatActivity {
         }
     }
 
-    private ArrayList<Trip> loadTripsFromInternal() {
-        ArrayList<Trip> savedTrips = new ArrayList<>();
+    private ArrayList<userTrip> loadTripsFromInternal() {
+        ArrayList<userTrip> savedTrips = new ArrayList<>();
         try {
             FileInputStream fis = openFileInput("user_trips.json");
             Gson gson = new Gson();
-            Type listType = new TypeToken<ArrayList<Trip>>() {}.getType();
+            Type listType = new TypeToken<ArrayList<userTrip>>() {}.getType();
             savedTrips = gson.fromJson(new InputStreamReader(fis), listType);
             fis.close();
         } catch (Exception ignored) {}
         return savedTrips != null ? savedTrips : new ArrayList<>();
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -192,10 +188,9 @@ public class Main extends AppCompatActivity {
         if (requestCode == 102 && resultCode == RESULT_FIRST_USER && data != null) {
             String cityToDelete = data.getStringExtra("deletedTripCity");
             if (cityToDelete != null) {
-                // Remove from internal storage list
-                ArrayList<Trip> trips = loadTripsFromInternal();
-                Trip toRemove = null;
-                for (Trip t : trips) {
+                ArrayList<userTrip> trips = loadTripsFromInternal();
+                userTrip toRemove = null;
+                for (userTrip t : trips) {
                     if (t.getCityName().equalsIgnoreCase(cityToDelete)) {
                         toRemove = t;
                         break;
@@ -206,29 +201,49 @@ public class Main extends AppCompatActivity {
                     saveTripsToInternal(trips);
                 }
 
-                // Refresh RecyclerView
                 userTrips = trips;
                 ArrayList<Trip> userTripsDisplay = new ArrayList<>();
-                for (Trip userTrip : userTrips) {
+                for (userTrip uTrip : userTrips) {
                     Trip match = null;
                     for (Trip defaultTrip : defaultTrips) {
-                        if (defaultTrip.getCityName().equalsIgnoreCase(userTrip.getCityName())) {
+                        if (defaultTrip.getCityName().equalsIgnoreCase(uTrip.getCityName())) {
                             match = defaultTrip;
                             break;
                         }
                     }
-                    if (match != null) userTripsDisplay.add(match);
-                    else {
-                        userTrip.setImageResId(0);
-                        userTripsDisplay.add(userTrip);
+
+                    Trip merged = new Trip();
+                    merged.setCityName(uTrip.getCityName());
+                    merged.setStartDate(uTrip.getStartDate());
+                    merged.setEndDate(uTrip.getEndDate());
+
+                    if (match != null) {
+                        merged.setCountry(match.getCountry());
+                        merged.setImageResId(getResources().getIdentifier(match.getImage(), "drawable", getPackageName()));
+                        merged.setRestaurants(match.getRestaurants());
+                        merged.setHotels(match.getHotels());
+                        merged.setFamous(match.getFamous());
+                        merged.setSafety(match.getSafety());
+                    } else {
+                        merged.setImageResId(0);
                     }
+
+                    userTripsDisplay.add(merged);
                 }
-                TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, this::openUserTripDetails);
+                TripAdapter userAdapter = new TripAdapter(this, userTripsDisplay, trip -> {
+                    userTrip uTrip = findUserTripByCity(trip.getCityName());
+                    if (uTrip != null) {
+                        Intent intent = new Intent(Main.this, userTripDetails.class);
+                        intent.putExtra("userTripJson", new Gson().toJson(uTrip));
+                        startActivityForResult(intent, 102);
+                    }
+                });
                 userTripsRecycler.setAdapter(userAdapter);
             }
         }
     }
-    private void saveTripsToInternal(ArrayList<Trip> trips) {
+
+    private void saveTripsToInternal(ArrayList<userTrip> trips) {
         try {
             Gson gson = new Gson();
             String json = gson.toJson(trips);
@@ -237,5 +252,4 @@ public class Main extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
 }
