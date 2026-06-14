@@ -32,11 +32,19 @@ The project follows the standard Android Studio structure:
 
 ---
 
-## How to Run the Project
-1. Install **Android Studio**
-2. Clone the repository:
-   ```bash
+## Installation
+
+1. Clone the repository:
    git clone https://github.com/bailasan-qadan/planning-trip-mobile-app.git
+
+2. Open the project in Android Studio or VS Code.
+
+3. Install dependencies:
+   flutter pub get
+
+4. Run the application:
+   flutter run
+
 ---
 
 ## Live Demo
